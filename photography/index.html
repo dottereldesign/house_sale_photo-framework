@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>House Photo Board</title>
+    <script>
+      document.documentElement.dataset.theme = localStorage.getItem("rental-launch-theme") || "light";
+    </script>
+    <link rel="stylesheet" href="../styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <a class="back-link" href="../">Rental prep home</a>
+        <a class="back-link current-link" href="./">Photography</a>
+        <p class="eyebrow">Rental listing photo planner</p>
+        <h1>House Photo Board</h1>
+      </div>
+      <div class="toolbar" aria-label="Project actions">
+        <label class="icon-button" title="Import backup">
+          <input id="importInput" type="file" accept="application/json" hidden>
+          <svg aria-hidden="true"><use href="#icon-upload"></use></svg>
+          <span>Import</span>
+        </label>
+        <button id="exportBtn" class="icon-button" type="button" title="Export backup">
+          <svg aria-hidden="true"><use href="#icon-download"></use></svg>
+          <span>Export</span>
+        </button>
+        <button id="loadRefsBtn" class="icon-button" type="button" title="Load Trade Me reference photos">
+          <svg aria-hidden="true"><use href="#icon-plus"></use></svg>
+          <span>Load refs</span>
+        </button>
+        <button id="clearBtn" class="icon-button danger" type="button" title="Clear all local photos">
+          <svg aria-hidden="true"><use href="#icon-trash"></use></svg>
+          <span>Clear</span>
+        </button>
+        <details class="data-menu">
+          <summary>Data</summary>
+          <div class="data-menu-panel">
+            <a href="../data/">Data overview</a>
+            <a href="../data/linz-data-service/">LINZ Data Service</a>
+            <a href="../data/linz-web-services/">LINZ web services</a>
+            <a href="../data/linz-building-outlines/">LINZ Building Outlines</a>
+            <a href="../data/stats-nz-api/">Stats NZ API</a>
+            <a href="../data/stats-nz-building-consents/">Stats NZ Building Consents</a>
+            <a href="../data/data-govt-nz/">data.govt.nz APIs</a>
+            <a href="../data/auckland-open-data/">Auckland Open Data / GeoMaps</a>
+            <a href="../data/auckland-arcgis-rest/">Auckland ArcGIS REST</a>
+            <a href="../data/christchurch-open-data/">Christchurch Open Data APIs</a>
+            <a href="../data/auckland-property-files/">Auckland property files</a>
+            <a href="../data/wellington-building-consent-search/">Wellington building consent search</a>
+            <a href="../data/christchurch-lim-property-services/">Christchurch LIM/property services</a>
+          </div>
+        </details>
+        <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="Switch colour theme">
+          <span data-theme-label>Dark</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="photo-layout">
+      <aside class="category-sidebar" aria-label="Room categories">
+        <div class="category-sidebar-inner">
+          <p class="eyebrow">Categories</p>
+          <nav id="categoryNav" class="category-nav"></nav>
+        </div>
+      </aside>
+
+      <div class="photo-workspace">
+        <nav class="reference-links" aria-label="Rental listing reference sites">
+          <a href="https://www.trademe.co.nz/a/property/residential/rent">Trade Me rentals</a>
+          <a href="https://www.realestate.co.nz/residential/rental">realestate.co.nz rentals</a>
+          <a href="https://www.oneroof.co.nz/search/houses-for-rent/region_all-new-zealand-1_page_1">OneRoof rentals</a>
+          <a href="https://homes.co.nz/">homes.co.nz</a>
+          <a href="https://www.myrent.co.nz/listings">myRent listings</a>
+        </nav>
+
+        <section class="summary" aria-label="Photo summary">
+          <div>
+            <span id="totalPhotos">0</span>
+            <p>listing photos</p>
+          </div>
+          <div>
+            <span id="completeRooms">0</span>
+            <p>complete</p>
+          </div>
+          <div>
+            <span id="needsMoreRooms">0</span>
+            <p>need more</p>
+          </div>
+        </section>
+
+        <nav class="view-toggle" aria-label="View selector">
+          <button id="roomsViewBtn" class="active" type="button">Folders</button>
+          <button id="allViewBtn" type="button">All photos</button>
+        </nav>
+
+        <section id="roomsView" class="rooms-view" aria-label="Photo folders"></section>
+        <section id="allView" class="all-view hidden" aria-label="All photos"></section>
+      </div>
+    </main>
+
+    <dialog id="photoModal" class="modal">
+      <button id="closeModal" class="modal-close" type="button" aria-label="Close photo">
+        <svg aria-hidden="true"><use href="#icon-x"></use></svg>
+      </button>
+      <img id="modalImage" alt="">
+      <div class="modal-meta">
+        <strong id="modalTitle"></strong>
+        <span id="modalRoom"></span>
+      </div>
+    </dialog>
+
+    <svg class="sprites" aria-hidden="true">
+      <symbol id="icon-dining" viewBox="0 0 24 24"><path d="M6 3v8"/><path d="M10 3v8"/><path d="M6 7h4"/><path d="M8 11v10"/><path d="M17 3v18"/><path d="M14 3v7a3 3 0 0 0 6 0V3"/></symbol>
+      <symbol id="icon-hallway" viewBox="0 0 24 24"><path d="M5 21V3h14v18"/><path d="M9 21V7h6v14"/><path d="M13 14h.01"/></symbol>
+      <symbol id="icon-lounge" viewBox="0 0 24 24"><path d="M5 12V9a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v3"/><path d="M4 12h16v6H4z"/><path d="M7 18v3"/><path d="M17 18v3"/></symbol>
+      <symbol id="icon-kitchen" viewBox="0 0 24 24"><path d="M4 4h16v6H4z"/><path d="M4 10h16v10H4z"/><path d="M8 14h.01"/><path d="M16 14h.01"/><path d="M9 4v6"/></symbol>
+      <symbol id="icon-bedroom" viewBox="0 0 24 24"><path d="M4 11V5h7a3 3 0 0 1 3 3v3"/><path d="M4 11h16a2 2 0 0 1 2 2v5H4z"/><path d="M4 18v3"/><path d="M20 18v3"/></symbol>
+      <symbol id="icon-bath" viewBox="0 0 24 24"><path d="M5 11h14v3a5 5 0 0 1-5 5H10a5 5 0 0 1-5-5z"/><path d="M8 19v2"/><path d="M16 19v2"/><path d="M7 11V6a3 3 0 0 1 6 0"/><path d="M13 6h2"/></symbol>
+      <symbol id="icon-toilet" viewBox="0 0 24 24"><path d="M8 3h8v6H8z"/><path d="M7 9h10v5a5 5 0 0 1-10 0z"/><path d="M10 19h4"/><path d="M12 19v2"/></symbol>
+      <symbol id="icon-laundry" viewBox="0 0 24 24"><rect x="6" y="3" width="12" height="18" rx="2"/><circle cx="12" cy="14" r="4"/><path d="M9 7h.01"/><path d="M13 7h2"/></symbol>
+      <symbol id="icon-outside" viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V10l7-6 7 6v11"/><path d="M9 21v-7h6v7"/><path d="M4 10h16"/></symbol>
+      <symbol id="icon-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+      <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></symbol>
+      <symbol id="icon-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+      <symbol id="icon-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+      <symbol id="icon-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 15h10l1-15"/><path d="M10 11v6"/><path d="M14 11v6"/></symbol>
+      <symbol id="icon-download" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></symbol>
+      <symbol id="icon-upload" viewBox="0 0 24 24"><path d="M12 21V9"/><path d="m7 14 5-5 5 5"/><path d="M5 3h14"/></symbol>
+    </svg>
+
+    <script src="../app.js"></script>
+    <script src="../site.js"></script>
+  </body>
+</html>

@@ -39,11 +39,15 @@ async function main() {
   console.log(`Watching ${sourceDir}`);
   console.log(`Writing ${outputFile}`);
   let timer;
-  fs.watch(sourceDir, () => {
+  const watcher = fs.watch(sourceDir, () => {
     clearTimeout(timer);
     timer = setTimeout(() => {
       buildImport().catch((error) => console.error(error));
     }, 350);
+  });
+  watcher.on("error", (error) => {
+    console.error(error);
+    process.exitCode = 1;
   });
 }
 
@@ -58,11 +62,12 @@ async function buildImport() {
     const ext = path.extname(entry.name).toLowerCase();
     if (!imageExtensions.has(ext)) continue;
 
-    const roomId = matchRoom(entry.name);
-    if (!roomId) {
+    const match = matchRoom(entry.name);
+    if (!match) {
       unmatched.push(entry.name);
       continue;
     }
+    const { roomId, verified } = match;
 
     const stat = await fsp.stat(filePath);
     const buffer = await fsp.readFile(filePath);
@@ -73,6 +78,7 @@ async function buildImport() {
       id: `trademe-ref-${roomId}-${hash}`,
       roomId,
       kind: "reference",
+      verifiedRoom: verified,
       name: entry.name,
       type: mime,
       size: stat.size,
@@ -97,7 +103,14 @@ async function buildImport() {
 
 function matchRoom(filename) {
   const normalized = path.basename(filename, path.extname(filename)).toLowerCase().replace(/[_-]+/g, " ");
-  return roomAliases.find((room) => room.aliases.some((alias) => normalized.includes(alias)))?.id || null;
+  const matchedRoom = roomAliases.find((room) => room.aliases.some((alias) => normalized.includes(alias)));
+  if (matchedRoom) {
+    return { roomId: matchedRoom.id, verified: true };
+  }
+  if (normalized.includes("bedroom") || /\bbed\b/.test(normalized)) {
+    return { roomId: "master", verified: false };
+  }
+  return null;
 }
 
 function mimeForExtension(ext) {

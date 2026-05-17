@@ -25,7 +25,9 @@ const photoKinds = {
 
 const dbName = "house-photo-board";
 const statusKey = "house-photo-board-statuses";
-const referenceImportPath = "trademe-reference-import.json";
+const referenceImportPath = window.location.pathname.includes("/photography/")
+  ? "../trademe-reference-import.json"
+  : "trademe-reference-import.json";
 let db;
 let photos = [];
 let statuses = loadStatuses();
@@ -34,6 +36,7 @@ let lastReferenceImportGeneratedAt = "";
 
 const roomsView = document.querySelector("#roomsView");
 const allView = document.querySelector("#allView");
+const categoryNav = document.querySelector("#categoryNav");
 const roomsViewBtn = document.querySelector("#roomsViewBtn");
 const allViewBtn = document.querySelector("#allViewBtn");
 const totalPhotos = document.querySelector("#totalPhotos");
@@ -149,6 +152,7 @@ function setView(view) {
 
 function render() {
   renderSummary();
+  renderCategoryNav();
   renderRooms();
   renderAll();
 }
@@ -164,6 +168,38 @@ function renderRooms() {
   rooms.forEach((room) => bindRoom(room));
 }
 
+function renderCategoryNav() {
+  if (!categoryNav) return;
+  categoryNav.innerHTML = rooms.map((room) => {
+    const roomPhotos = photos.filter((photo) => photo.roomId === room.id);
+    const referenceCount = roomPhotos.filter((photo) => photo.kind === "reference").length;
+    const listingCount = roomPhotos.filter((photo) => photo.kind === "listing").length;
+    const finalCount = roomPhotos.filter((photo) => photo.kind === "listing" && photo.isFinal).length;
+    const complete = statuses[room.id] === "complete" ? " complete" : "";
+    return `
+      <button class="category-link${complete}" type="button" data-room-link="${room.id}">
+        <span class="category-link-title">
+          <svg aria-hidden="true"><use href="#${room.icon}"></use></svg>
+          ${room.name}
+        </span>
+        <span class="category-link-meta">${listingCount} listing · ${referenceCount} ref · ${finalCount} final</span>
+      </button>
+    `;
+  }).join("");
+
+  categoryNav.querySelectorAll("[data-room-link]").forEach((button) => {
+    button.addEventListener("click", () => jumpToRoom(button.dataset.roomLink));
+  });
+}
+
+function jumpToRoom(roomId) {
+  setView("rooms");
+  openRooms.add(roomId);
+  renderRooms();
+  const roomEl = document.querySelector(`[data-room="${roomId}"]`);
+  roomEl?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
 function roomTemplate(room) {
   const roomPhotos = photos.filter((photo) => photo.roomId === room.id);
   const referencePhotos = roomPhotos.filter((photo) => photo.kind === "reference");
@@ -171,7 +207,7 @@ function roomTemplate(room) {
   const finalPhotos = listingPhotos.filter((photo) => photo.isFinal);
   const open = openRooms.has(room.id) ? " open" : "";
   return `
-    <article class="room${open}" data-room="${room.id}">
+    <article id="room-${room.id}" class="room${open}" data-room="${room.id}">
       <button class="room-toggle" type="button" aria-expanded="${openRooms.has(room.id)}">
         <span class="room-icon"><svg aria-hidden="true"><use href="#${room.icon}"></use></svg></span>
         <span class="room-title">
@@ -197,7 +233,11 @@ function roomTemplate(room) {
             </label>
             <label class="add-button primary">
               <input type="file" accept="image/*" multiple data-file-kind="listing">
-              Add listing photos
+              Choose listing photos
+            </label>
+            <label class="add-button camera-button">
+              <input type="file" accept="image/*" capture="environment" data-file-kind="listing">
+              Take listing photo
             </label>
           </div>
           <div class="dropzone" data-dropzone="${room.id}">
@@ -301,9 +341,13 @@ function photoTemplate(photo) {
   const kindLabel = escapeHtml(photoKinds[photo.kind] || "Listing");
   const version = escapeHtml(photo.version || "");
   const finalBadge = photo.kind === "listing" && photo.isFinal ? '<span class="badge final">Final</span>' : "";
+  const unverifiedBadge = photo.verifiedRoom === false ? '<span class="badge warning">Unverified room</span>' : "";
   const finalButton = photo.kind === "listing"
     ? `<button class="mark-final ${photo.isFinal ? "active" : ""}" type="button">${photo.isFinal ? "Final shot" : "Mark final"}</button>`
     : "";
+  const roomOptions = rooms.map((item) => `
+    <option value="${escapeHtml(item.id)}" ${item.id === photo.roomId ? "selected" : ""}>${escapeHtml(item.name)}</option>
+  `).join("");
   return `
     <article class="photo-card" data-photo="${escapeHtml(photo.id)}">
       <button class="preview" type="button" aria-label="Open ${photoName}">
@@ -311,6 +355,7 @@ function photoTemplate(photo) {
         <span class="badges">
           <span class="badge">${kindLabel}</span>
           ${finalBadge}
+          ${unverifiedBadge}
         </span>
       </button>
       <footer>
@@ -318,6 +363,10 @@ function photoTemplate(photo) {
         <label class="version-field">
           <span>Version</span>
           <input type="text" value="${version}" placeholder="v1">
+        </label>
+        <label class="room-field">
+          <span>Room</span>
+          <select>${roomOptions}</select>
         </label>
         ${finalButton}
         <button class="delete-photo" type="button" aria-label="Delete ${photoName}">
@@ -337,7 +386,7 @@ function bindPhotoCard(card) {
     modalImage.src = photo.dataUrl;
     modalImage.alt = photo.name;
     modalTitle.textContent = photo.name;
-    modalRoom.textContent = `${room ? room.name : "Unsorted"} · ${photoKinds[photo.kind] || "Listing"}${photo.version ? ` · ${photo.version}` : ""}${photo.isFinal ? " · Final" : ""}`;
+    modalRoom.textContent = `${room ? room.name : "Unsorted"} · ${photoKinds[photo.kind] || "Listing"}${photo.verifiedRoom === false ? " · Unverified room" : ""}${photo.version ? ` · ${photo.version}` : ""}${photo.isFinal ? " · Final" : ""}`;
     photoModal.showModal();
   });
 
@@ -356,6 +405,18 @@ function bindPhotoCard(card) {
     finalButton.addEventListener("click", async () => {
       photo.isFinal = !photo.isFinal;
       await updatePhoto(photo);
+      render();
+    });
+  }
+
+  const roomSelect = card.querySelector(".room-field select");
+  if (roomSelect) {
+    roomSelect.addEventListener("click", (event) => event.stopPropagation());
+    roomSelect.addEventListener("change", async () => {
+      photo.roomId = roomSelect.value;
+      photo.verifiedRoom = true;
+      await updatePhoto(photo);
+      openRooms.add(photo.roomId);
       render();
     });
   }
@@ -409,6 +470,7 @@ function normalizePhoto(photo) {
     kind,
     version: photo.version || "",
     isFinal: Boolean(photo.isFinal) && kind !== "reference",
+    verifiedRoom: photo.verifiedRoom !== false,
   };
 }
 

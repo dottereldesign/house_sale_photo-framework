@@ -4,7 +4,9 @@ A static photo planning board for rental listing photos. It runs entirely in the
 
 ## Use
 
-Open `index.html` in a browser, or publish the repository with GitHub Pages. Add photos into each room folder as either `Reference` images or real `Listing` photos, mark each folder as `To shoot`, `Needs more`, or `Complete`, and use `All photos` to review the full set.
+Open `index.html` in a browser, or publish the repository with GitHub Pages. The root page is the rental launch homepage. The photo board lives at `/photography/`.
+
+In the photo board, add photos into each room folder as either `Reference` images or real `Listing` photos, mark each folder as `To shoot`, `Needs more`, or `Complete`, and use `All photos` to review the full set. On phones, use `Take listing photo` to open the camera directly, or `Choose listing photos` to pick existing photos from the device.
 
 Reference images are for examples, angles, styling cues, or reminders. Listing photos are the real rental photos. Listing photos can be marked as `Final shot`, and each photo can have a version label such as `v1`, `wide`, `edited`, or `final crop`.
 

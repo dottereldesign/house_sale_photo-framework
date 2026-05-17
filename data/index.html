@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Data Overview | Rental Launch Board</title>
+    <script>document.documentElement.dataset.theme = localStorage.getItem("rental-launch-theme") || "light";</script>
+    <link rel="stylesheet" href="../styles.css">
+  </head>
+  <body>
+    <header class="topbar utility-topbar">
+      <div>
+        <a class="back-link" href="../">Rental prep home</a>
+        <p class="eyebrow">Property data sources</p>
+        <h1>Data Overview</h1>
+      </div>
+      <nav class="top-links" aria-label="Primary navigation">
+        <a href="../photography/">Photography</a>
+        <a href="./">Data</a>
+        <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch colour theme"><span data-theme-label>Dark</span></button>
+      </nav>
+    </header>
+    <main>
+      <section class="section-intro">
+        <p class="eyebrow">Local-first integrations</p>
+        <h2>Choose a source</h2>
+        <p>Use these pages to plan address lookup, parcel context, building outlines, consent statistics, council GIS, and manually ordered property files.</p>
+      </section>
+      <section class="data-source-grid" data-source-overview></section>
+    </main>
+    <script src="sources.js"></script>
+    <script>
+      const mount = document.querySelector("[data-source-overview]");
+      mount.innerHTML = window.RENTAL_DATA_SOURCES.map((source) => `
+        <article class="feature-card">
+          <p class="eyebrow">${source.category}</p>
+          <h3>${source.title}</h3>
+          <p>${source.fit}</p>
+          <a href="${source.slug}/">Open page</a>
+        </article>
+      `).join("");
+    </script>
+    <script src="../site.js"></script>
+  </body>
+</html>
