@@ -6,7 +6,13 @@ window.RENTAL_DATA_SOURCES = [
     what: "NZ addresses, parcels, titles-related spatial data, roads, aerial imagery, and building outlines.",
     access: "API/WFS with LINZ Data Service API key.",
     fit: "Best base layer for address lookup, parcel context, imagery, and map-backed property records.",
+    price: "Free open data. Requires free LDS account/API key for web services.",
+    legalUse: "Use under dataset licence, usually Creative Commons attribution. Keep attribution and do not misuse personal/title data.",
+    acquisition: "Create a LINZ Data Service key, use official WFS/WMS/API endpoints, cache locally, and refresh politely.",
+    formats: "WFS, WMS, CSV/downloads, GIS formats depending on layer.",
+    safePractice: "Use narrow bounding boxes and address/parcel filters. Cache responses locally. Do not bulk-pull nationwide layers unless you intentionally download an official extract.",
     sourceUrl: "https://www.linz.govt.nz/products-services/data/linz-data-service",
+    downloadUrl: "https://data.linz.govt.nz/",
     actions: ["Create or add a LINZ API key locally.", "Resolve address to coordinates and parcel context.", "Cache source responses against the property dossier."]
   },
   {
@@ -16,7 +22,13 @@ window.RENTAL_DATA_SOURCES = [
     what: "WFS, WMS, and other web service access into LINZ datasets.",
     access: "API key required for most service calls.",
     fit: "Address lookup, parcel map, building-outline overlays, and basemap layers.",
+    price: "Free to use with a LINZ Data Service account/API key.",
+    legalUse: "Agree to LINZ terms when creating a key. Respect each layer licence and attribution requirement.",
+    acquisition: "Use documented LDS WFS/WMS endpoints only. Store API key locally, not in GitHub Pages source.",
+    formats: "WFS, WMS, WMTS, API responses, GIS downloads.",
+    safePractice: "Prefer one address/parcel query at a time. Keep a local cache and use manual refresh instead of tight polling.",
     sourceUrl: "https://www.linz.govt.nz/guidance/data-service/linz-data-service-guide/web-services",
+    downloadUrl: "https://www.linz.govt.nz/guidance/data-service/linz-data-service-guide/web-services/creating-api-key",
     actions: ["Choose WFS for feature data.", "Choose WMS/basemaps for map rendering.", "Store endpoint presets locally."]
   },
   {
@@ -26,7 +38,13 @@ window.RENTAL_DATA_SOURCES = [
     what: "Building footprint shapes, not internal floor plans.",
     access: "LINZ API/WFS/download.",
     fit: "Estimate structures, site coverage, external form, and likely building placement.",
+    price: "Free open data from LINZ.",
+    legalUse: "Use under the layer licence with attribution. Treat footprint estimates as indicative, not a floor plan.",
+    acquisition: "Query the official LINZ layer around the property coordinate or download the official layer extract.",
+    formats: "Layer download, WFS/API, GIS formats.",
+    safePractice: "Fetch only outlines intersecting the parcel or nearby coordinate. Do not treat outlines as consented floor plans.",
     sourceUrl: "https://data.linz.govt.nz/from/data.linz.govt.nz/layer/101290-nz-building-outlines/",
+    downloadUrl: "https://data.linz.govt.nz/from/data.linz.govt.nz/layer/101290-nz-building-outlines/",
     actions: ["Fetch outlines around the property coordinate.", "Compare footprint with uploaded floor plans.", "Flag mismatch risks for manual review."]
   },
   {
@@ -36,7 +54,13 @@ window.RENTAL_DATA_SOURCES = [
     what: "Machine-readable Stats NZ datasets.",
     access: "Registration/subscription through Stats NZ API Portal.",
     fit: "Regional market/context module for rental launch decisions.",
+    price: "Free registration/API access, subject to API Portal terms.",
+    legalUse: "Stats NZ API Portal data is licensed under Creative Commons Attribution 4.0, with API key and no re-identification obligations.",
+    acquisition: "Register, subscribe to an API product, store key locally, and pull only the datasets needed for context.",
+    formats: "API responses; some datasets may also have CSV/Excel tables through Stats NZ releases.",
+    safePractice: "Do not share API keys. Cache responses. Do not attempt to identify individuals from statistical data.",
     sourceUrl: "https://portal.apis.stats.govt.nz/",
+    downloadUrl: "https://portal.apis.stats.govt.nz/apis",
     actions: ["Add API key locally.", "Pull regional/territorial-authority statistics.", "Cache useful tables for offline review."]
   },
   {
@@ -46,7 +70,13 @@ window.RENTAL_DATA_SOURCES = [
     what: "Consent counts, value, and floor area by geography, not individual floor plans.",
     access: "Stats NZ tables/API, depending on dataset route.",
     fit: "Market and local construction-context module.",
+    price: "Free public statistics. API may require free Stats NZ API registration.",
+    legalUse: "Use with Stats NZ attribution. This is aggregate data; do not present it as property-specific consent history.",
+    acquisition: "Use official Stats NZ release tables/API. Download CSV/Excel tables where provided by Stats NZ.",
+    formats: "API, Excel release tables, CSV where available.",
+    safePractice: "Refresh monthly or manually. Use territorial authority/region filters rather than excessive repeated calls.",
     sourceUrl: "https://datainfoplus.stats.govt.nz/item/nz.govt.stats/ee083b32-8c10-4ccf-b1ee-a4990b27273c/114",
+    downloadUrl: "https://www.stats.govt.nz/topics/building-consents/",
     actions: ["Show TA/region consent trend.", "Explain that this is aggregate data.", "Link property-specific consent docs to council source pages."]
   },
   {
@@ -56,7 +86,13 @@ window.RENTAL_DATA_SOURCES = [
     what: "Dataset metadata and some row-level datasets from NZ agencies.",
     access: "CKAN metadata APIs and DataStore where available.",
     fit: "Discover council/open datasets related to hazards, zoning, consents, and property context.",
+    price: "Free to use, subject to data.govt.nz terms and each dataset licence.",
+    legalUse: "Respect each dataset licence. Do not disrupt the API, claim official status, or misuse personal/IP data.",
+    acquisition: "Use catalogue/API search, open official dataset pages, and download machine-readable CSV/API resources where provided.",
+    formats: "Metadata API, DataStore API, CSV and other agency-provided resources.",
+    safePractice: "Cache dataset metadata. Link back to dataset pages. Avoid repeated broad catalogue sweeps.",
     sourceUrl: "https://www.data.govt.nz/catalogue-guide/using-data-govt-nz-apis",
+    downloadUrl: "https://catalogue.data.govt.nz/",
     actions: ["Search for property-related datasets by council.", "Save useful dataset links locally.", "Track which datasets are API-ready vs manual."]
   },
   {
@@ -66,7 +102,13 @@ window.RENTAL_DATA_SOURCES = [
     what: "GIS/property layers, hazards, zoning, services, and spatial context.",
     access: "ArcGIS/open data where available.",
     fit: "Auckland-specific enrichment for hazards, planning, utilities, and property map context.",
+    price: "Open Data is generally free; some council records/property files are paid/manual.",
+    legalUse: "Auckland Open Data is generally CC BY 4.0 unless stated otherwise. Some layers are restricted to specified uses only.",
+    acquisition: "Use official Auckland open data/GeoMaps and ArcGIS endpoints. For property files/floor plans, order through council.",
+    formats: "ArcGIS services, open data downloads, maps; manual PDFs for property files.",
+    safePractice: "Check each layer's licence before reuse. Cache property-specific results. Do not scrape private/restricted layers.",
     sourceUrl: "https://new.aucklandcouncil.govt.nz/en/geospatial.html",
+    downloadUrl: "https://new.aucklandcouncil.govt.nz/en/geospatial/council-open-data/user-licence-auckland-council-open-data.html",
     actions: ["Detect Auckland address and show Auckland-specific links.", "Save relevant GeoMaps layers.", "Use manually ordered property files for floor plans."]
   },
   {
@@ -76,7 +118,13 @@ window.RENTAL_DATA_SOURCES = [
     what: "Public GIS service directory for Auckland Council layers.",
     access: "ArcGIS REST endpoints.",
     fit: "Good local API experiment surface for property enrichment.",
+    price: "Free access to public services, subject to Auckland Council/geospatial terms and layer licences.",
+    legalUse: "Use only public endpoints and respect layer licences. Do not treat public REST directory access as permission for restricted data.",
+    acquisition: "Browse official service directory and query chosen public services with narrow filters.",
+    formats: "ArcGIS REST JSON, map/feature services, downloads where enabled.",
+    safePractice: "Use small spatial queries and avoid automated broad crawling of service directories.",
     sourceUrl: "https://mapspublic.aucklandcouncil.govt.nz/arcgis3/rest/services",
+    downloadUrl: "https://mapspublic.aucklandcouncil.govt.nz/arcgis3/rest/services",
     actions: ["Browse services and pick stable layers.", "Prototype query calls locally.", "Cache service metadata for chosen property."]
   },
   {
@@ -86,7 +134,13 @@ window.RENTAL_DATA_SOURCES = [
     what: "ESRI MapService, Feature Service, and WFS endpoints.",
     access: "Open data APIs.",
     fit: "Christchurch-specific property, hazards, planning, and infrastructure context.",
-    sourceUrl: "https://dateno.io/registry/catalog/cdi00002794/",
+    price: "Open data APIs are generally free; council property files/LIMs are paid/manual.",
+    legalUse: "Use official open data endpoints and comply with Christchurch terms/licences.",
+    acquisition: "Use official ESRI MapService/Feature Service/WFS endpoints exposed by the open data programme.",
+    formats: "ESRI MapService, Feature Service, WFS, downloads where enabled.",
+    safePractice: "Query specific layers/areas only. Cache results. Do not scrape paid property-file workflows.",
+    sourceUrl: "https://opendata-christchurchcity.hub.arcgis.com/",
+    downloadUrl: "https://gis.ccc.govt.nz/arcgis/rest/services/OpenData",
     actions: ["Detect Christchurch address and show council-specific links.", "Query open GIS layers locally.", "Attach Christchurch LIM/property docs."]
   },
   {
@@ -96,7 +150,13 @@ window.RENTAL_DATA_SOURCES = [
     what: "Property file, latest floor plan if available, consent documents, correspondence, and related records.",
     access: "Manual/order, usually not public API.",
     fit: "Store downloaded PDFs locally and tag likely floor-plan pages.",
+    price: "Paid council order: Standard $77, urgent $117, commercial $149, plus card fee where applicable.",
+    legalUse: "Order through Auckland Council's online process. Use documents for lawful due diligence/listing prep; do not scrape token links.",
+    acquisition: "Order online, receive digital link/token, download PDFs, upload/store locally in the app.",
+    formats: "Manual digital property file/PDF download after order.",
+    safePractice: "Store token links privately. Do not commit property files or personal data to GitHub.",
     sourceUrl: "https://www.aucklandcouncil.govt.nz/buying-property/order-property-report/pages/order-property-file.aspx",
+    downloadUrl: "https://www.aucklandcouncil.govt.nz/buying-property/order-property-report/pages/order-property-file.aspx",
     actions: ["Order property file manually.", "Upload downloaded PDFs into local vault.", "Tag floor plan, consent, CCC, drainage, LIM."]
   },
   {
@@ -106,7 +166,13 @@ window.RENTAL_DATA_SOURCES = [
     what: "Building consent/permit copies, which may include floor plans.",
     access: "Manual/order via Wellington City Council.",
     fit: "Store downloaded consent/floor-plan PDFs locally.",
+    price: "Paid/manual council order. Fees depend on the requested consents/permits and current WCC schedule.",
+    legalUse: "Use Wellington City Council's official search/order workflow. Respect any terms on returned documents.",
+    acquisition: "Search/order consents through WCC, then upload returned files locally.",
+    formats: "Manual document copies/PDFs where supplied.",
+    safePractice: "Do not automate checkout/order flows. Use official search, keep records private, and upload files locally.",
     sourceUrl: "https://wellington.govt.nz/property-rates-and-building/property/reports/building-consent-search/building-plan-search-form",
+    downloadUrl: "https://wellington.govt.nz/property-rates-and-building/property/reports/building-consent-search/building-plan-search-form",
     actions: ["Search issued consents/permits.", "Order documents manually.", "Upload returned documents into local vault."]
   },
   {
@@ -116,7 +182,13 @@ window.RENTAL_DATA_SOURCES = [
     what: "LIM, property file, drainage plan, and property-service documents.",
     access: "Manual/order via Christchurch City Council.",
     fit: "Store downloaded docs locally for due diligence and listing prep.",
+    price: "Paid council services. 2025/2026 examples: residential LIM $290, fast track LIM $390, electronic residential property file $30, hard-copy conversion $65.",
+    legalUse: "Order through Christchurch City Council. Use returned files lawfully and keep private property documents local.",
+    acquisition: "Order LIM/property file/drainage plan through official CCC services and upload returned docs into the app.",
+    formats: "Manual PDFs/electronic files; open GIS data separately through Christchurch Open Data APIs.",
+    safePractice: "Do not scrape paid services. Keep PDFs out of public repos. Record order references in local notes.",
     sourceUrl: "https://ccc.govt.nz/consents-and-licences/property-information-and-lims",
+    downloadUrl: "https://www.ccc.govt.nz/the-council/plans-strategies-policies-and-bylaws/plans/long-term-plan-and-annual-plans/fees-and-charges/fees-regulatory-and-property-information-services",
     actions: ["Order relevant Christchurch docs.", "Upload returned PDFs.", "Tag LIM/property file/drainage/floor-plan evidence."]
   }
 ];

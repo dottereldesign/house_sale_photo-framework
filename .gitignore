@@ -1,5 +1,7 @@
-trademe-reference-import.json
 .trademe-watch.log
 .trademe-watch.pid
 .server.log
 .server.pid
+trademe-reference-import.json
+.DS_Store
+data/.DS_Store

@@ -25,9 +25,14 @@ const photoKinds = {
 
 const dbName = "house-photo-board";
 const statusKey = "house-photo-board-statuses";
+const seedPhotosKey = "house-photo-board-seed-loaded";
+const webpQuality = 0.86;
 const referenceImportPath = window.location.pathname.includes("/photography/")
   ? "../trademe-reference-import.json"
   : "trademe-reference-import.json";
+const seedPhotosPath = window.location.pathname.includes("/photography/")
+  ? "photos.json"
+  : "photography/photos.json";
 let db;
 let photos = [];
 let statuses = loadStatuses();
@@ -51,7 +56,11 @@ init();
 
 async function init() {
   db = await openDb();
-  photos = (await getAllPhotos()).map(normalizePhoto);
+  photos = await migrateExistingPhotosToWebp((await getAllPhotos()).map(normalizePhoto));
+  if (!photos.length && !localStorage.getItem(seedPhotosKey)) {
+    photos = await loadSeedPhotos();
+    localStorage.setItem(seedPhotosKey, "true");
+  }
   bindGlobalActions();
   startReferenceAutoImport();
   render();
@@ -137,6 +146,7 @@ function bindGlobalActions() {
     await clearPhotos();
     statuses = rooms.reduce((next, room) => ({ ...next, [room.id]: "todo" }), {});
     saveStatuses();
+    localStorage.setItem(seedPhotosKey, "true");
     photos = [];
     render();
   });
@@ -351,7 +361,7 @@ function photoTemplate(photo) {
   return `
     <article class="photo-card" data-photo="${escapeHtml(photo.id)}">
       <button class="preview" type="button" aria-label="Open ${photoName}">
-        <img src="${escapeHtml(photo.dataUrl)}" alt="${photoName}">
+        <img src="${escapeHtml(photoSource(photo))}" alt="${photoName}">
         <span class="badges">
           <span class="badge">${kindLabel}</span>
           ${finalBadge}
@@ -383,7 +393,7 @@ function bindPhotoCard(card) {
   const room = rooms.find((item) => item.id === photo.roomId);
 
   card.querySelector(".preview").addEventListener("click", () => {
-    modalImage.src = photo.dataUrl;
+    modalImage.src = photoSource(photo);
     modalImage.alt = photo.name;
     modalTitle.textContent = photo.name;
     modalRoom.textContent = `${room ? room.name : "Unsorted"} · ${photoKinds[photo.kind] || "Listing"}${photo.verifiedRoom === false ? " · Unverified room" : ""}${photo.version ? ` · ${photo.version}` : ""}${photo.isFinal ? " · Final" : ""}`;
@@ -431,17 +441,18 @@ function bindPhotoCard(card) {
 async function addFiles(roomId, files, kind = "listing") {
   const imageFiles = files.filter((file) => file.type.startsWith("image/"));
   for (const file of imageFiles) {
+    const converted = await convertImageFileToWebp(file);
     const photo = {
       id: crypto.randomUUID(),
       roomId,
       kind: photoKinds[kind] ? kind : "listing",
-      name: file.name,
-      type: file.type,
-      size: file.size,
+      name: renameAsWebp(file.name),
+      type: "image/webp",
+      size: converted.size,
       createdAt: Date.now(),
       version: "",
       isFinal: false,
-      dataUrl: await readFile(file),
+      dataUrl: converted.dataUrl,
     };
     await savePhoto(photo);
     photos.push(photo);
@@ -457,6 +468,102 @@ function readFile(file) {
     reader.onload = () => resolve(reader.result);
     reader.readAsDataURL(file);
   });
+}
+
+async function convertImageFileToWebp(file) {
+  return convertDataUrlToWebp(await readFile(file));
+}
+
+async function convertDataUrlToWebp(dataUrl) {
+  const image = await loadImage(dataUrl);
+  const canvas = document.createElement("canvas");
+  canvas.width = image.naturalWidth;
+  canvas.height = image.naturalHeight;
+  const context = canvas.getContext("2d");
+  context.drawImage(image, 0, 0);
+
+  const blob = await new Promise((resolve, reject) => {
+    canvas.toBlob((nextBlob) => {
+      if (nextBlob) resolve(nextBlob);
+      else reject(new Error("WebP conversion failed"));
+    }, "image/webp", webpQuality);
+  });
+
+  return {
+    dataUrl: await readBlobAsDataUrl(blob),
+    size: blob.size,
+  };
+}
+
+function loadImage(dataUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("Could not decode image"));
+    image.src = dataUrl;
+  });
+}
+
+function readBlobAsDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error);
+    reader.onload = () => resolve(reader.result);
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function loadSeedPhotos() {
+  try {
+    const response = await fetch(`${seedPhotosPath}?t=${Date.now()}`, { cache: "no-store" });
+    if (!response.ok) return [];
+    const payload = await response.json();
+    const seededPhotos = (payload.photos || []).map(normalizePhoto);
+    for (const photo of seededPhotos) {
+      await savePhoto(photo);
+    }
+    return seededPhotos.sort((a, b) => a.createdAt - b.createdAt);
+  } catch (error) {
+    console.warn("Could not load seeded photos", error);
+    return [];
+  }
+}
+
+async function migrateExistingPhotosToWebp(existingPhotos) {
+  const migrated = [];
+  for (const photo of existingPhotos) {
+    const nextPhoto = await ensureWebpPhoto(photo);
+    if (nextPhoto !== photo) await savePhoto(nextPhoto);
+    migrated.push(nextPhoto);
+  }
+  return migrated.sort((a, b) => a.createdAt - b.createdAt);
+}
+
+async function ensureWebpPhoto(photo) {
+  if (photo.src && photo.type === "image/webp") return photo;
+  if (photo.type === "image/webp" && String(photo.dataUrl).startsWith("data:image/webp")) return photo;
+  try {
+    const converted = await convertDataUrlToWebp(photo.dataUrl);
+    return {
+      ...photo,
+      name: renameAsWebp(photo.name),
+      type: "image/webp",
+      size: converted.size,
+      dataUrl: converted.dataUrl,
+    };
+  } catch (error) {
+    console.warn(`Could not convert ${photo.name || "photo"} to WebP`, error);
+    return photo;
+  }
+}
+
+function renameAsWebp(name) {
+  const cleanName = name || "photo";
+  return cleanName.replace(/\.[^.]+$/, "") + ".webp";
+}
+
+function photoSource(photo) {
+  return photo.dataUrl || photo.src || "";
 }
 
 function statusLabel(status) {
@@ -504,12 +611,12 @@ async function importProject(event) {
   if (!file) return;
   const payload = JSON.parse(await file.text());
   if (!Array.isArray(payload.photos)) {
-    alert("That backup file does not look like a House Photo Board export.");
+    alert("That backup file does not look like a Rental Launch Board export.");
     return;
   }
 
   await applyImportPayload(payload);
-  photos = (await getAllPhotos()).map(normalizePhoto);
+  photos = await migrateExistingPhotosToWebp((await getAllPhotos()).map(normalizePhoto));
   event.target.value = "";
   render();
 }
@@ -550,7 +657,7 @@ async function fetchReferenceImport() {
 async function mergeReferencePayload(payload) {
   await applyImportPayload(payload);
   lastReferenceImportGeneratedAt = payload.generatedAt || "";
-  photos = (await getAllPhotos()).map(normalizePhoto);
+  photos = await migrateExistingPhotosToWebp((await getAllPhotos()).map(normalizePhoto));
   render();
 }
 
@@ -561,7 +668,7 @@ async function applyImportPayload(payload) {
   }
 
   for (const photo of payload.photos.map(normalizePhoto)) {
-    await savePhoto(photo);
+    await savePhoto(await ensureWebpPhoto(photo));
   }
 
   if (payload.statuses) {
