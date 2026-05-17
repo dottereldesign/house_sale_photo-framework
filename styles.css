@@ -92,6 +92,30 @@ button {
   align-items: center;
 }
 
+.brand-logo {
+  display: inline-flex;
+  align-items: center;
+  width: 34px;
+  height: 34px;
+  margin-bottom: 12px;
+  color: #121212;
+  text-decoration: none;
+}
+
+[data-theme="dark"] .brand-logo {
+  color: #ffffff;
+}
+
+.home-topbar .brand-logo {
+  margin-bottom: 0;
+}
+
+.brand-logo svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 .utility-topbar {
   min-height: var(--hero-header-offset);
 }
